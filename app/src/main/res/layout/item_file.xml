@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_file_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tv_file_path"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="/storage/emulated/0/Android/data/..."
+            android:textColor="#FFCCCCCC"
+            android:textSize="12sp"
+            android:layout_marginTop="2dp"
+            android:maxLines="1"
+            android:ellipsize="middle"/>
+
+        <TextView
+            android:id="@+id/tv_file_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.25MB"
+            android:textColor="#FFCCCCCC"
+            android:textSize="11sp"
+            android:layout_marginTop="2dp"/>
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/img_file_select"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/ic_not_selete"
+        android:layout_marginStart="12dp"/>
+
+</LinearLayout>

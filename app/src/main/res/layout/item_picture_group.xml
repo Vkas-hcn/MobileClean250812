@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginBottom="16dp"
+    android:orientation="vertical">
+
+    <!-- Date Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="12dp">
+
+        <TextView
+            android:id="@+id/tv_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="-"
+            android:textColor="#FFFFFFFF"
+            android:textSize="14sp" />
+
+
+        <CheckBox
+            android:id="@+id/cb_select_all"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@mipmap/ic_not_selete"
+            android:button="@null" />
+
+    </LinearLayout>
+
+    <!-- Pictures Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_pictures"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        tools:listitem="@layout/item_picture"
+        android:nestedScrollingEnabled="false"
+        android:overScrollMode="never" />
+
+</LinearLayout>

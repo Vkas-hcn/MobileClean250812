@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/result"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0FBF3">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:id="@+id/img_top"
+            android:layout_width="match_parent"
+            android:layout_height="203dp"
+            android:scaleType="centerCrop"
+            android:background="#25C05E"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/img_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:src="@mipmap/ic_back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/text_view_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Result"
+            android:textColor="#FFFFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/img_back"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/img_back" />
+
+        <ImageView
+            android:id="@+id/img_d"
+            android:layout_width="74dp"
+            android:layout_height="74dp"
+            android:layout_marginTop="28dp"
+            android:src="@mipmap/ic_finish"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_view_id" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="CLEAN_FINISHED"
+            android:textColor="#FFFFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/img_d" />
+
+        <TextView
+            android:id="@+id/tv_save_data"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Saved 0MB space for you"
+            android:textColor="#FFEAFFEB"
+            android:textSize="10sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/atv_picture"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="24dp"
+            android:background="@mipmap/bg_item_finish"
+            android:drawableStart="@mipmap/ic_img"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:text="Picture Clean"
+            android:textColor="#FF0A0C10"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/img_top" />
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_clean_but"
+            android:gravity="center"
+            android:text="Clean"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/atv_picture"
+            app:layout_constraintEnd_toEndOf="@+id/atv_picture"
+            app:layout_constraintTop_toTopOf="@+id/atv_picture" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/atv_file"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="16dp"
+            android:background="@mipmap/bg_item_finish"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:paddingStart="50dp"
+            android:text="File Clean"
+            android:textColor="#FF252525"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/atv_picture" />
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="12dp"
+            android:src="@mipmap/ic_fc"
+            app:layout_constraintBottom_toBottomOf="@+id/atv_file"
+            app:layout_constraintStart_toStartOf="@+id/atv_file"
+            app:layout_constraintTop_toTopOf="@+id/atv_file" />
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_clean_but"
+            android:gravity="center"
+            android:paddingHorizontal="13dp"
+            android:paddingVertical="7dp"
+            android:text="Clean"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/atv_file"
+            app:layout_constraintEnd_toEndOf="@+id/atv_file"
+            app:layout_constraintTop_toTopOf="@+id/atv_file" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/atv_clean"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="16dp"
+            android:background="@mipmap/bg_item_finish"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:paddingStart="50dp"
+            android:text="Clean"
+            android:textColor="#FF252525"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@+id/atv_file" />
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="12dp"
+            android:src="@mipmap/logo"
+            app:layout_constraintBottom_toBottomOf="@+id/atv_clean"
+            app:layout_constraintStart_toStartOf="@+id/atv_clean"
+            app:layout_constraintTop_toTopOf="@+id/atv_clean" />
+
+        <TextView
+            android:layout_width="60dp"
+            android:layout_height="28dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_clean_but"
+            android:gravity="center"
+            android:paddingHorizontal="13dp"
+            android:paddingVertical="7dp"
+            android:text="Clean"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/atv_clean"
+            app:layout_constraintEnd_toEndOf="@+id/atv_clean"
+            app:layout_constraintTop_toTopOf="@+id/atv_clean" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/con_clean"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="@drawable/bg_sacn">
+
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tv_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:drawableStart="@mipmap/ic_back"
+            android:gravity="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/pg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:indicatorColor="#22D264"
+            app:indicatorInset="0dp"
+            app:indicatorSize="156dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:trackColor="#EBF5FF"
+            app:trackThickness="18dp"
+            tools:progress="40" />
+
+        <ImageView
+            android:id="@+id/img_bg_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_ovl"
+            app:layout_constraintBottom_toBottomOf="@+id/pg"
+            app:layout_constraintEnd_toEndOf="@+id/pg"
+            app:layout_constraintStart_toStartOf="@+id/pg"
+            app:layout_constraintTop_toTopOf="@+id/pg" />
+
+        <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_img"
+            app:layout_constraintBottom_toBottomOf="@+id/pg"
+            app:layout_constraintEnd_toEndOf="@+id/pg"
+            app:layout_constraintStart_toStartOf="@+id/pg"
+            app:layout_constraintTop_toTopOf="@+id/pg" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Scanning…"
+            android:textColor="#FFFFFFFF"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pg" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/picture"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#03170B"
+    android:fitsSystemWindows="true">
+
+
+    <ImageView
+        android:id="@+id/btn_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:src="@mipmap/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Image"
+        android:textColor="#FFFFFFFF"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/scanning_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="24dp"
+        android:background="@mipmap/bg_no_junk"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/btn_back">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_scanned_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@color/white"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_scanned_size_un"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MB"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="#FFEAFFEB"
+            android:text="Screenshot"
+            android:textSize="12sp" />
+
+        <ProgressBar
+            android:id="@+id/progress_scaning"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:progress="0"
+            android:progressDrawable="@drawable/bg_pro_scaning"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/img_scan_bg" />
+    </LinearLayout>
+
+
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_categories"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/ll_select_all"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scanning_details"
+        tools:listitem="@layout/item_picture_group" />
+    <!-- Select All Section -->
+    <LinearLayout
+        android:id="@+id/ll_select_all"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="15dp"
+        android:background="#043116"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/cb_select_all_global"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:button="@mipmap/ic_not_selete" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select All"
+                android:textColor="#FFFFFFFF"
+                android:textSize="12sp"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_clean_now"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="26dp"
+            android:paddingVertical="14dp"
+            android:text="Delete"
+            android:textColor="#FF053116"
+            android:textSize="14sp"
+            app:cornerRadius="32dp"
+            app:backgroundTint="#1AD05D"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/rv_categories" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scan"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_sacn"
+    android:fitsSystemWindows="true">
+
+
+    <ImageView
+        android:id="@+id/btn_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:src="@mipmap/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="Scanning"
+        android:textColor="#FFFFFFFF"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/scanning_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="24dp"
+        android:background="@mipmap/bg_no_junk"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/btn_back">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_scanned_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="321"
+                android:textColor="@color/white"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_scanned_size_un"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MB"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/tv_scanning_path"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Scanning: /Storage/Downloads/Temp Files"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+
+    <!-- Categories RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_categories"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="20dp"
+        app:layout_constraintBottom_toTopOf="@id/btn_clean_now"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scanning_details"
+        tools:listitem="@layout/item_category" />
+
+    <!-- Clean Now Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_clean_now"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="42dp"
+        android:layout_marginBottom="16sp"
+        android:paddingVertical="12dp"
+        android:text="Clean Now"
+        android:textColor="#053116"
+        android:textStyle="bold"
+        app:backgroundTint="#1AD05D"
+        app:cornerRadius="32dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rv_categories" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

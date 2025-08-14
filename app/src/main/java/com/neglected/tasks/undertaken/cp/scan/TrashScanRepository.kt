@@ -1,0 +1,409 @@
+package com.neglected.tasks.undertaken.cp.scan
+
+import android.content.Context
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import java.io.File
+import java.util.regex.Pattern
+
+class TrashScanRepository(private val context: Context) {
+
+    companion object {
+        private const val TAG = "TrashScanRepository"
+
+        private val filterStrArr = arrayOf(
+            ".(/|\\\\)crashlytics(/|\\\\|\$).",
+            ".(/|\\\\)firebase(/|\\\\|\$).",
+            ".(/|\\\\)bugly(/|\\\\|\$).",
+            ".(/|\\\\)umeng(/|\\\\|\$).",
+            ".(/|\\\\)backup(/|\\\\|\$).",
+            ".(/|\\\\)downloads?(/|\\\\|\$).\\.part\$",
+            ".(/|\\\\)downloads?(/|\\\\|\$).\\.crdownload\$",
+            ".(/|\\\\)downloads?(/|\\\\|\$).\\.tmp\$",
+            ".(/|\\\\)webview(/|\\\\|\$).",
+            ".(/|\\\\)webviewcache(/|\\\\|\$).",
+
+            ".(/|\\\\)analytics(/|\\\\|\$).",
+            ".(/|\\\\)advertising(/|\\\\|\$).",
+            ".(/|\\\\)logfiles?(/|\\\\|\$).",
+            ".(/|\\\\)errorlogs?(/|\\\\|\$).",
+            ".(/|\\\\)telemetry(/|\\\\|\$).",
+            ".(/|\\\\)thumbnails?(/|\\\\|\$).",
+            ".(/|\\\\)imageloader(/|\\\\|\$).",
+            ".(/|\\\\)okhttp(/|\\\\|\$).",
+            ".(/|\\\\)picasso(/|\\\\|\$).",
+            ".(/|\\\\)fresco(/|\\\\|\$)."
+        )
+
+        private val filterPatterns = filterStrArr.map { Pattern.compile(it, Pattern.CASE_INSENSITIVE) }
+
+        private val trashExtensions = setOf(
+            "tmp", "temp", "cache", "bak", "backup", "old", "log", "part",
+            "crdownload", "download", "incomplete", "partial", "thumbs",
+            "~", "swp", "swo", "orig", "rej", "crash", "dmp", "trace"
+        )
+
+        private val trashFileNames = setOf(
+            "thumbs.db", "desktop.ini", ".ds_store", "icon\r", "ehthumbs.db",
+            "ehthumbs_vista.db", ".spotlight-v100", ".trashes", ".fseventsd",
+            ".temporaryitems", ".apdisk", "network trash folder", "temporary items",
+            "recycled", "recycle.bin", ".recycle", "\$recycle.bin"
+        )
+
+        private val trashFolderNames = setOf(
+            "temp", "tmp", "cache", "caches", "temporary", "trash", "recycle",
+            "backup", "old", "logs", "log", "analytics", "telemetry", "crashlogs",
+            "errorlogs", "thumbnails", "thumb", "preview", "previews", ".trash"
+        )
+    }
+
+
+    fun scanTrashFiles(): Flow<ScanState> = flow {
+        emit(ScanState.Idle)
+
+        try {
+            emit(ScanState.Scanning("Starting scan...", 0L))
+
+            val scannedFiles = mutableListOf<ScannedFile>()
+            var totalScannedSize = 0L
+
+            // 获取需要扫描的目录
+            val scanDirectories = getScanDirectories()
+
+            if (scanDirectories.isEmpty()) {
+                emit(ScanState.Completed(0L, 0))
+                return@flow
+            }
+
+            for (directory in scanDirectories) {
+                if (directory.exists() && directory.isDirectory) {
+                    emit(ScanState.Scanning("Scanning: ${directory.name}", totalScannedSize))
+
+                    try {
+                        if (!directory.canRead()) {
+                            continue
+                        }
+
+                        val filesInDirectory = scanDirectory(directory)
+                        scannedFiles.addAll(filesInDirectory)
+                        totalScannedSize += filesInDirectory.sumOf { it.size }
+
+                        delay(100)
+
+                        emit(ScanState.Scanning("Scanning: ${directory.name}", totalScannedSize))
+
+                        emit(ScanState.Progress(scannedFiles.toList(), totalScannedSize))
+
+                    } catch (e: Exception) {
+                    }
+                }
+            }
+
+            emit(ScanState.CompletedWithFiles(totalScannedSize, scannedFiles.size, scannedFiles.toList()))
+
+        } catch (e: Exception) {
+            emit(ScanState.Error("Scan failed: ${e.localizedMessage}"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+
+    fun deleteSelectedFiles(files: List<ScannedFile>): Flow<CleanState> = flow {
+        emit(CleanState.Idle)
+
+        try {
+            emit(CleanState.Cleaning(0, files.size))
+
+            var deletedCount = 0
+            var deletedSize = 0L
+
+            files.forEachIndexed { index, scannedFile ->
+                try {
+                    val file = File(scannedFile.path)
+
+                    if (file.exists() && file.delete()) {
+                        deletedCount++
+                        deletedSize += scannedFile.size
+                    }
+
+                    emit(CleanState.Cleaning(index + 1, files.size))
+                    delay(50) // 模拟删除延迟
+
+                } catch (e: Exception) {
+                    // 继续删除其他文件
+                }
+            }
+
+            emit(CleanState.Completed(deletedCount, deletedSize))
+
+        } catch (e: Exception) {
+            emit(CleanState.Error("Clean failed: ${e.localizedMessage}"))
+        }
+    }.flowOn(Dispatchers.IO)
+
+
+    private fun getScanDirectories(): List<File> {
+        val directories = mutableListOf<File>()
+        context.cacheDir?.let {
+            directories.add(it)
+        }
+
+        context.externalCacheDir?.let {
+            directories.add(it)
+        }
+
+        try {
+            val customCacheDir = File(context.filesDir, "cache")
+            if (customCacheDir.exists()) {
+                directories.add(customCacheDir)
+            }
+        } catch (e: Exception) {
+        }
+
+        try {
+            context.getExternalFilesDir(null)?.let { externalFiles ->
+                val externalCache = File(externalFiles, "cache")
+                if (externalCache.exists()) {
+                    directories.add(externalCache)
+                } else {
+                }
+            }
+        } catch (e: Exception) {
+        }
+
+        try {
+            val downloadDir = File("/storage/emulated/0/Download")
+            if (downloadDir.exists()) {
+                directories.add(downloadDir)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "检查下载目录时出错", e)
+        }
+
+        try {
+            context.filesDir?.let {
+                directories.add(it)
+            }
+
+            context.getExternalFilesDir(null)?.let {
+                directories.add(it)
+            }
+
+            // 系统临时目录
+            val systemTempDirs = listOf(
+                "/storage/emulated/0/Android/data/",
+                "/data/data/",
+                "/sdcard/Android/data/"
+            )
+
+            systemTempDirs.forEach { path ->
+                try {
+                    val dir = File(path)
+                    if (dir.exists() && dir.canRead()) {
+                        directories.add(dir)
+                    }
+                } catch (e: Exception) {
+                }
+            }
+
+        } catch (e: Exception) {
+        }
+
+        val validDirectories = directories.filter { it.exists() && it.canRead() }
+
+
+        return validDirectories
+    }
+
+
+    private fun scanDirectory(directory: File): List<ScannedFile> {
+        val scannedFiles = mutableListOf<ScannedFile>()
+        try {
+            val files = directory.listFiles()
+            if (files == null) {
+                return scannedFiles
+            }
+
+
+            files.forEach { file ->
+                try {
+                    if (file.isFile) {
+                        if (isTrashFile(file)) {
+                            val category = categorizeTrashFile(file)
+                            if (category != null) {
+                                val scannedFile = ScannedFile(
+                                    name = file.name,
+                                    path = file.absolutePath,
+                                    size = file.length(),
+                                    category = category,
+                                    isSelected = false
+                                )
+                                scannedFiles.add(scannedFile)
+                            }
+                        } else {
+                            val category = FileCategory.Companion.categorizeFile(
+                                fileName = file.name,
+                                filePath = file.absolutePath,
+                                fileSize = file.length()
+                            )
+
+                            if (category != null) {
+                                val scannedFile = ScannedFile(
+                                    name = file.name,
+                                    path = file.absolutePath,
+                                    size = file.length(),
+                                    category = category,
+                                    isSelected = false
+                                )
+                                scannedFiles.add(scannedFile)
+                            }
+                        }
+                    } else if (file.isDirectory) {
+                        if (isTrashDirectory(file)) {
+                            val trashDirFiles = scanTrashDirectory(file)
+                            scannedFiles.addAll(trashDirFiles)
+                        } else {
+                            try {
+                                if (getDirectoryDepth(file, directory) < 3) {
+                                    scannedFiles.addAll(scanDirectory(file))
+                                }
+                            } catch (e: Exception) {
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                }
+            }
+        } catch (e: Exception) {
+        }
+
+        return scannedFiles
+    }
+
+    private fun isTrashFile(file: File): Boolean {
+        val filePath = file.absolutePath
+        val fileName = file.name.lowercase()
+        val fileExtension = if (fileName.contains('.')) {
+            fileName.substringAfterLast('.')
+        } else {
+            ""
+        }
+
+        for (pattern in filterPatterns) {
+            if (pattern.matcher(filePath).find()) {
+                return true
+            }
+        }
+
+        if (fileExtension in trashExtensions) {
+            return true
+        }
+
+        if (fileName in trashFileNames) {
+            return true
+        }
+
+        if (isSpecialTrashPattern(fileName, filePath)) {
+            return true
+        }
+
+        return false
+    }
+
+    private fun isTrashDirectory(directory: File): Boolean {
+        val dirName = directory.name.lowercase()
+        return dirName in trashFolderNames
+    }
+
+
+    private fun scanTrashDirectory(directory: File): List<ScannedFile> {
+        val trashFiles = mutableListOf<ScannedFile>()
+
+        try {
+            val files = directory.listFiles()
+            files?.forEach { file ->
+                if (file.isFile) {
+                    val category = categorizeTrashFile(file) ?: FileCategory.Companion.categorizeFile(
+                        fileName = file.name,
+                        filePath = file.absolutePath,
+                        fileSize = file.length()
+                    )
+                    if (category != null) {
+                        val scannedFile = ScannedFile(
+                            name = file.name,
+                            path = file.absolutePath,
+                            size = file.length(),
+                            category = category,
+                            isSelected = false
+                        )
+                        trashFiles.add(scannedFile)
+                    }
+                } else if (file.isDirectory && getDirectoryDepth(file, directory) < 2) {
+                    trashFiles.addAll(scanTrashDirectory(file))
+                }
+            }
+        } catch (e: Exception) {
+        }
+
+        return trashFiles
+    }
+
+
+    private fun isSpecialTrashPattern(fileName: String, filePath: String): Boolean {
+        // 检查临时文件模式
+        if (fileName.startsWith("tmp") || fileName.startsWith("temp") ||
+            fileName.endsWith("~") || fileName.contains(".tmp.")) {
+            return true
+        }
+
+        // 检查备份文件模式
+        if (fileName.endsWith(".bak") || fileName.endsWith(".backup") ||
+            fileName.endsWith(".old") || fileName.contains(".backup.")) {
+            return true
+        }
+
+        // 检查日志文件模式
+        if (fileName.endsWith(".log") || fileName.contains("log") &&
+            (fileName.endsWith(".txt") || fileName.endsWith(".out"))) {
+            return true
+        }
+
+        // 检查崩溃报告
+        if (fileName.contains("crash") || fileName.contains("dump") ||
+            fileName.contains("error") && fileName.endsWith(".txt")) {
+            return true
+        }
+
+        // 检查网络缓存
+        if (filePath.contains("http") && (filePath.contains("cache") || filePath.contains("temp"))) {
+            return true
+        }
+
+        return false
+    }
+
+
+    private fun categorizeTrashFile(file: File): FileCategory? {
+        // 使用原有的分类方法
+        return FileCategory.Companion.categorizeFile(
+            fileName = file.name,
+            filePath = file.absolutePath,
+            fileSize = file.length()
+        )
+    }
+
+
+    private fun getDirectoryDepth(current: File, root: File): Int {
+        var depth = 0
+        var temp = current
+        while (temp != root && temp.parent != null) {
+            depth++
+            temp = temp.parentFile ?: break
+            if (depth > 10) break // 防止无限循环
+        }
+        return depth
+    }
+}

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/load">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/con_clean"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_sacn">
+
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tv_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="16dp"
+            android:drawablePadding="8dp"
+            android:drawableStart="@mipmap/ic_back"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/pg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:indicatorColor="#36DFBE"
+            app:indicatorInset="0dp"
+            app:indicatorSize="146dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:trackColor="#EBF5FF"
+            app:trackThickness="12dp"
+            tools:progress="40" />
+
+        <ImageView
+            android:id="@+id/img_bg_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_ovl"
+            android:layout_marginStart="-4dp"
+            app:layout_constraintBottom_toBottomOf="@+id/pg"
+            app:layout_constraintEnd_toEndOf="@+id/pg"
+            app:layout_constraintStart_toStartOf="@+id/pg"
+            app:layout_constraintTop_toTopOf="@+id/pg" />
+
+        <ImageView
+            android:id="@+id/img_logo"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@mipmap/ic_img"
+            app:layout_constraintBottom_toBottomOf="@+id/pg"
+            app:layout_constraintEnd_toEndOf="@+id/pg"
+            app:layout_constraintStart_toStartOf="@+id/pg"
+            app:layout_constraintTop_toTopOf="@+id/pg" />
+
+        <TextView
+            android:id="@+id/tv_tip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scaning…"
+            android:textColor="#FF606060"
+            android:textSize="16sp"
+            android:layout_marginTop="24dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pg" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
