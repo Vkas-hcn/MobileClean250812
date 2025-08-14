@@ -21,13 +21,13 @@
             fresco:actualImageScaleType="centerCrop"
             fresco:roundAsCircle="false" />
 
-        <CheckBox
+        <ImageView
             android:id="@+id/cb_select"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_gravity="top|end"
             android:layout_margin="4dp"
-            android:background="@drawable/selector_checkbox"
+            android:background="@mipmap/ic_not_selete"
             android:button="@null" />
 
         <TextView

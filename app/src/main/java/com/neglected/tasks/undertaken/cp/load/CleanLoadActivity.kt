@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.view.animation.LinearInterpolator
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -18,6 +19,7 @@ import com.neglected.tasks.undertaken.databinding.ActivityScanLoadBinding
 
 class CleanLoadActivity : AppCompatActivity() {
     var jumpType = ""
+    var isResumedState = false
 
     private lateinit var binding: ActivityScanLoadBinding
     var deletedSize = 0L
@@ -51,6 +53,8 @@ class CleanLoadActivity : AppCompatActivity() {
             finish()
         }
         startCountdown()
+        onBackPressedDispatcher.addCallback {
+        }
     }
 
     private fun startCountdown() {
@@ -63,6 +67,9 @@ class CleanLoadActivity : AppCompatActivity() {
         }
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
+                if (!isResumedState) {
+                    return
+                }
                 val intent = Intent(this@CleanLoadActivity, CleanCompleteActivity::class.java).apply {
                     putExtra("deleted_size", deletedSize)
                 }
@@ -71,5 +78,14 @@ class CleanLoadActivity : AppCompatActivity() {
             }
         })
         animator.start()
+    }
+    override fun onResume() {
+        super.onResume()
+        isResumedState = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isResumedState = false
     }
 }

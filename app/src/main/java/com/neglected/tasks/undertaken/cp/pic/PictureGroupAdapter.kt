@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,18 +28,19 @@ class PictureGroupAdapter(
 
     inner class GroupViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val dateText: TextView = itemView.findViewById(R.id.tv_date)
-        private val selectAllCheckbox: CheckBox = itemView.findViewById(R.id.cb_select_all)
+        private val selectAllCheckbox: ImageView = itemView.findViewById(R.id.cb_select_all)
         private val picturesGrid: RecyclerView = itemView.findViewById(R.id.rv_pictures)
 
         fun bind(group: PictureGroup, position: Int) {
             dateText.text = group.date
 
-            selectAllCheckbox.setOnCheckedChangeListener(null)
-            selectAllCheckbox.isChecked = group.isSelected
-            selectAllCheckbox.setOnCheckedChangeListener { _, _ ->
+
+            selectAllCheckbox.setOnClickListener {
                 onGroupSelectionChanged(position)
             }
-
+            selectAllCheckbox.setImageResource(
+                if (group.isSelected) R.mipmap.ic_selete else R.mipmap.ic_not_selete
+            )
             val pictureAdapter = PictureAdapter(group.pictures) { pictureIndex ->
                 onPictureSelectionChanged(position, pictureIndex)
             }
@@ -70,22 +72,22 @@ class PictureAdapter(
 
     inner class PictureViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val imageView: SimpleDraweeView = itemView.findViewById(R.id.iv_picture)
-        private val selectCheckbox: CheckBox = itemView.findViewById(R.id.cb_select)
+        private val selectCheckbox: ImageView = itemView.findViewById(R.id.cb_select)
         private val tvSize: TextView = itemView.findViewById(R.id.tv_size)
 
         fun bind(picture: PictureItem, position: Int) {
-            // 使用 Fresco 加载图片
             imageView.setImageURI(picture.uri)
 
             val (sizeText, _) = formatStorageSize(picture.size)
             tvSize.text = sizeText
 
-            selectCheckbox.setOnCheckedChangeListener(null)
-            selectCheckbox.isChecked = picture.isSelected
-            selectCheckbox.setOnCheckedChangeListener { _, _ ->
+
+            selectCheckbox.setOnClickListener {
                 onSelectionChanged(position)
             }
-
+            selectCheckbox.setImageResource(
+                if (picture.isSelected) R.mipmap.ic_selete else R.mipmap.ic_not_selete
+            )
             itemView.setOnClickListener {
                 onSelectionChanged(position)
             }

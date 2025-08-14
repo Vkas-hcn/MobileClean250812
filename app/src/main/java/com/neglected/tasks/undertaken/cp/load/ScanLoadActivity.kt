@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.view.animation.LinearInterpolator
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -22,6 +23,7 @@ class ScanLoadActivity : AppCompatActivity() {
     private lateinit var binding: ActivityScanLoadBinding
 
     var jumpType = ""
+    var isResumedState = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -49,6 +51,8 @@ class ScanLoadActivity : AppCompatActivity() {
             }
         }
         startCountdown()
+        onBackPressedDispatcher.addCallback {
+        }
     }
 
     private fun startCountdown() {
@@ -61,6 +65,9 @@ class ScanLoadActivity : AppCompatActivity() {
         }
         animator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator) {
+                if (!isResumedState) {
+                    return
+                }
                 when (jumpType) {
                     ScanType.PICTURE_CLEAN.name -> {
                         startActivity(Intent(this@ScanLoadActivity, CleanPictureActivity::class.java))
@@ -78,5 +85,14 @@ class ScanLoadActivity : AppCompatActivity() {
         animator.start()
     }
 
+    override fun onResume() {
+        super.onResume()
+        isResumedState = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isResumedState = false
+    }
 
 }

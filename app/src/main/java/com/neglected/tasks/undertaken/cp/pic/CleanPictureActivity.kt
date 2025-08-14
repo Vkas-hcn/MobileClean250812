@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -55,7 +56,7 @@ class CleanPictureActivity : AppCompatActivity() {
     private fun setupViews() {
         binding.btnBack.setOnClickListener { viewModel.onBackPressed() }
         binding.cbSelectAllGlobal.setOnClickListener { viewModel.toggleSelectAll() }
-        binding.btnCleanNow.setOnClickListener { viewModel.deleteSelectedPictures() }
+        binding.btnCleanNow.setOnClickListener {showDeleteConfirmationDialog() }
 
         pictureAdapter = PictureGroupAdapter(
             onGroupSelectionChanged = { groupIndex -> viewModel.toggleGroupSelection(groupIndex) },
@@ -70,6 +71,21 @@ class CleanPictureActivity : AppCompatActivity() {
         }
     }
 
+    private fun showDeleteConfirmationDialog() {
+        val currentState = viewModel.uiState.value ?: return
+        if (currentState.selectedCount <= 0) return
+
+        AlertDialog.Builder(this)
+            .setTitle("Confirm Deletion")
+            .setMessage("Are you sure you want to delete ${currentState.selectedCount} selected items?")
+            .setPositiveButton("Delete") { _, _ ->
+                viewModel.deleteSelectedPictures()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
     private fun observeViewModel() {
         viewModel.uiState.observe(this) { state ->
             updateUI(state)

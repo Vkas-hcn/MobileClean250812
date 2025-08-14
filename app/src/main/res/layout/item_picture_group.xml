@@ -26,7 +26,7 @@
             android:textSize="14sp" />
 
 
-        <CheckBox
+        <ImageView
             android:id="@+id/cb_select_all"
             android:layout_width="20dp"
             android:layout_height="20dp"
