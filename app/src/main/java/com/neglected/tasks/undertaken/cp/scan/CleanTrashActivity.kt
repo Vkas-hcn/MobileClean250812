@@ -25,6 +25,7 @@ class CleanTrashActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCleanTrashBinding
     private lateinit var repository: TrashScanRepository
+    private lateinit var permissionHelper: StoragePermissionHelper
     private val viewModel: CleanTrashViewModel by viewModels {
         CleanTrashViewModel.Factory(repository)
     }
@@ -37,25 +38,47 @@ class CleanTrashActivity : AppCompatActivity() {
         binding = ActivityCleanTrashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 初始化Repository
         repository = TrashScanRepository(this)
+        permissionHelper = StoragePermissionHelper(this)
 
         supportActionBar?.hide()
         setupViews()
         observeViewModel()
 
-        // 开始扫描
+        checkPermissionAndStartScan()
+    }
+
+    private fun checkPermissionAndStartScan() {
+
+        if (permissionHelper.checkStoragePermission()) {
+            startScanning()
+        } else {
+            requestPermissionAndScan()
+        }
+    }
+
+    private fun requestPermissionAndScan() {
+        permissionHelper.requestStoragePermission { granted ->
+            if (granted) {
+                startScanning()
+            } else {
+                permissionHelper.showPermissionDeniedDialog {
+                    requestPermissionAndScan()
+                }
+            }
+        }
+    }
+
+    private fun startScanning() {
+        binding.tvScanningPath.text = "Start scanning..."
         viewModel.startScanning()
     }
 
     private fun setupViews() {
-
-        // 设置返回按钮
         binding.btnBack.setOnClickListener {
             finish()
         }
 
-        // 设置RecyclerView
         categoryAdapter = CategoryAdapter(
             onCategoryExpandClick = { position ->
                 viewModel.toggleCategoryExpansion(position)
@@ -73,37 +96,30 @@ class CleanTrashActivity : AppCompatActivity() {
             adapter = categoryAdapter
         }
 
-        // 设置清理按钮
         binding.btnCleanNow.setOnClickListener {
             viewModel.cleanSelectedFiles()
         }
 
-        // 初始状态
-        binding.btnCleanNow.visibility = View.VISIBLE // 始终显示清理按钮
-        binding.btnCleanNow.isEnabled = false // 但默认禁用
+        binding.btnCleanNow.visibility = View.VISIBLE
+        binding.btnCleanNow.isEnabled = false
         updateSizeDisplay(0L)
     }
 
     private fun observeViewModel() {
-
-        // 观察扫描状态
         viewModel.scanState
             .onEach { state ->
                 handleScanState(state)
             }
             .launchIn(lifecycleScope)
 
-        // 观察清理状态
         viewModel.cleanState
             .onEach { state ->
                 handleCleanState(state)
             }
             .launchIn(lifecycleScope)
 
-        // 观察分类数据
         viewModel.categoryGroups
             .onEach { groups ->
-
                 categoryAdapter.submitList(groups)
             }
             .launchIn(lifecycleScope)
@@ -117,7 +133,7 @@ class CleanTrashActivity : AppCompatActivity() {
 
         viewModel.scanningPath
             .onEach { path ->
-                binding.tvScanningPath.text = if (path.isNotEmpty()) "Scanning: $path" else path
+                binding.tvScanningPath.text = if (path.isNotEmpty()) path else "Wait for the scan..."
             }
             .launchIn(lifecycleScope)
 
@@ -147,34 +163,40 @@ class CleanTrashActivity : AppCompatActivity() {
     private fun handleScanState(state: ScanState) {
         when (state) {
             is ScanState.Idle -> {
-                // 空闲状态
+                binding.tvScanningPath.text = "Wait for the scan..."
             }
             is ScanState.Scanning -> {
-                binding.tvScanningPath.text = "Scanning: ${state.currentPath}"
+                binding.tvScanningPath.text = state.currentPath
             }
             is ScanState.Progress -> {
-                // 实时更新扫描进度
-                binding.tvScanningPath.text = "Scanning... Found ${state.scannedFiles.size} files"
+                binding.tvScanningPath.text = "Scanning... found ${state.scannedFiles.size} files"
             }
             is ScanState.CompletedWithFiles -> {
-
-                if (state.totalFiles == 0) {
-                    binding.tvScanningPath.text = "No trash files found"
+                val message = if (state.totalFiles == 0) {
+                    "No spam files found"
                 } else {
-                    binding.tvScanningPath.text = "Scanning completed - Found ${state.totalFiles} files"
+                    "Scan complete - Discovered${state.totalFiles} files"
                 }
-
+                binding.tvScanningPath.text = message
             }
             is ScanState.Completed -> {
-                if (state.totalFiles == 0) {
-                    binding.tvScanningPath.text = "No trash files found"
+                val message = if (state.totalFiles == 0) {
+                    "No spam files found"
                 } else {
-                    binding.tvScanningPath.text = "Scanning completed - Found ${state.totalFiles} files"
+                    "Scan complete - Discovered${state.totalFiles} files"
                 }
+                binding.tvScanningPath.text = message
             }
             is ScanState.Error -> {
-                binding.tvScanningPath.text = "Scan error: ${state.message}"
-                Toast.makeText(this, "Scan failed: ${state.message}", Toast.LENGTH_SHORT).show()
+                binding.tvScanningPath.text = "Scan for errors: ${state.message}"
+                Toast.makeText(this, "Scan for errors: ${state.message}", Toast.LENGTH_LONG).show()
+                Log.e(TAG, "Scan for errors: ${state.message}")
+
+                if (state.message.contains("Permissions")) {
+                    permissionHelper.showPermissionDeniedDialog {
+                        checkPermissionAndStartScan()
+                    }
+                }
             }
         }
     }
@@ -182,22 +204,22 @@ class CleanTrashActivity : AppCompatActivity() {
     private fun handleCleanState(state: CleanState) {
         when (state) {
             is CleanState.Idle -> {
+                // 空闲状态
             }
             is CleanState.Cleaning -> {
                 binding.btnCleanNow.isEnabled = false
-                binding.tvScanningPath.text = "Cleaning... ${state.progress}/${state.total}"
+                binding.tvScanningPath.text = "Cleaning up... ${state.progress}/${state.total}"
             }
             is CleanState.Completed -> {
                 navigateToScanActivity(state.deletedSize)
             }
             is CleanState.Error -> {
                 binding.btnCleanNow.isEnabled = true
-                binding.tvScanningPath.text = "Clean error: ${state.message}"
-                Toast.makeText(this, "Clean failed: ${state.message}", Toast.LENGTH_SHORT).show()
                 viewModel.resetCleanState()
             }
         }
     }
+
     private fun navigateToScanActivity(deletedSize: Long) {
         val intent = Intent(this, CleanLoadActivity::class.java).apply {
             putExtra("deleted_size", deletedSize)
@@ -206,6 +228,7 @@ class CleanTrashActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
     private fun updateSizeDisplay(size: Long) {
         val (displaySize, unit) = formatFileSize(size)
         binding.tvScannedSize.text = displaySize
@@ -220,12 +243,9 @@ class CleanTrashActivity : AppCompatActivity() {
                 binding.scanningDetails.background = ContextCompat.getDrawable(this, R.mipmap.bg_no_junk)
             }
         } catch (e: Exception) {
-            // 忽略资源不存在的错误
+            Log.w(TAG, "Updating the background image failed", e)
         }
     }
-
-
-
 
     private fun formatFileSize(size: Long): Pair<String, String> {
         return when {
@@ -247,13 +267,5 @@ class CleanTrashActivity : AppCompatActivity() {
         viewModel.resetCleanState()
     }
 
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "Activity onResume")
-    }
 
-    override fun onPause() {
-        super.onPause()
-        Log.d(TAG, "Activity onPause")
-    }
 }

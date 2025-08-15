@@ -1,6 +1,8 @@
 package com.neglected.tasks.undertaken.cp.scan
 
 import android.content.Context
+import android.os.Build
+import android.os.Environment
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -26,7 +28,6 @@ class TrashScanRepository(private val context: Context) {
             ".(/|\\\\)downloads?(/|\\\\|\$).\\.tmp\$",
             ".(/|\\\\)webview(/|\\\\|\$).",
             ".(/|\\\\)webviewcache(/|\\\\|\$).",
-
             ".(/|\\\\)analytics(/|\\\\|\$).",
             ".(/|\\\\)advertising(/|\\\\|\$).",
             ".(/|\\\\)logfiles?(/|\\\\|\$).",
@@ -61,17 +62,23 @@ class TrashScanRepository(private val context: Context) {
         )
     }
 
-
     fun scanTrashFiles(): Flow<ScanState> = flow {
         emit(ScanState.Idle)
 
         try {
-            emit(ScanState.Scanning("Starting scan...", 0L))
+            emit(ScanState.Scanning("Check permissions...", 0L))
+
+            // 检查权限状态
+            if (!checkStoragePermission()) {
+                emit(ScanState.Error("Storage permissions are required to scan files"))
+                return@flow
+            }
+
+            emit(ScanState.Scanning("scanning...", 0L))
 
             val scannedFiles = mutableListOf<ScannedFile>()
             var totalScannedSize = 0L
 
-            // 获取需要扫描的目录
             val scanDirectories = getScanDirectories()
 
             if (scanDirectories.isEmpty()) {
@@ -81,7 +88,7 @@ class TrashScanRepository(private val context: Context) {
 
             for (directory in scanDirectories) {
                 if (directory.exists() && directory.isDirectory) {
-                    emit(ScanState.Scanning("Scanning: ${directory.name}", totalScannedSize))
+                    emit(ScanState.Scanning("scan: ${directory.name}", totalScannedSize))
 
                     try {
                         if (!directory.canRead()) {
@@ -89,16 +96,17 @@ class TrashScanRepository(private val context: Context) {
                         }
 
                         val filesInDirectory = scanDirectory(directory)
+
                         scannedFiles.addAll(filesInDirectory)
                         totalScannedSize += filesInDirectory.sumOf { it.size }
 
                         delay(100)
 
-                        emit(ScanState.Scanning("Scanning: ${directory.name}", totalScannedSize))
-
+                        emit(ScanState.Scanning("scan: ${directory.name}", totalScannedSize))
                         emit(ScanState.Progress(scannedFiles.toList(), totalScannedSize))
 
                     } catch (e: Exception) {
+                        Log.e(TAG, "Scan the catalog ${directory.absolutePath} wrong", e)
                     }
                 }
             }
@@ -106,10 +114,9 @@ class TrashScanRepository(private val context: Context) {
             emit(ScanState.CompletedWithFiles(totalScannedSize, scannedFiles.size, scannedFiles.toList()))
 
         } catch (e: Exception) {
-            emit(ScanState.Error("Scan failed: ${e.localizedMessage}"))
+            emit(ScanState.Error("The scan failed: ${e.localizedMessage}"))
         }
     }.flowOn(Dispatchers.IO)
-
 
     fun deleteSelectedFiles(files: List<ScannedFile>): Flow<CleanState> = flow {
         emit(CleanState.Idle)
@@ -130,94 +137,102 @@ class TrashScanRepository(private val context: Context) {
                     }
 
                     emit(CleanState.Cleaning(index + 1, files.size))
-                    delay(50) // 模拟删除延迟
+                    delay(50)
 
                 } catch (e: Exception) {
-                    // 继续删除其他文件
+                    Log.e(TAG, "Delete files ${scannedFile.path} wrong", e)
                 }
             }
 
             emit(CleanState.Completed(deletedCount, deletedSize))
 
         } catch (e: Exception) {
-            emit(CleanState.Error("Clean failed: ${e.localizedMessage}"))
+            emit(CleanState.Error("Cleanup failed: ${e.localizedMessage}"))
         }
     }.flowOn(Dispatchers.IO)
 
+    private fun checkStoragePermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val hasManagePermission = Environment.isExternalStorageManager()
+            Log.d(TAG, "Android 11+, MANAGE_EXTERNAL_STORAGE权限状态: $hasManagePermission")
+            hasManagePermission
+        } else {
+            val hasReadPermission = context.checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+            Log.d(TAG, "Android 10及以下, READ_EXTERNAL_STORAGE权限状态: $hasReadPermission")
+            hasReadPermission
+        }
+    }
 
     private fun getScanDirectories(): List<File> {
         val directories = mutableListOf<File>()
-        context.cacheDir?.let {
-            directories.add(it)
-        }
-
-        context.externalCacheDir?.let {
-            directories.add(it)
-        }
 
         try {
-            val customCacheDir = File(context.filesDir, "cache")
-            if (customCacheDir.exists()) {
-                directories.add(customCacheDir)
+            context.cacheDir?.let {
+                directories.add(it)
             }
-        } catch (e: Exception) {
-        }
 
-        try {
+            context.externalCacheDir?.let {
+                directories.add(it)
+            }
+
+            context.filesDir?.let {
+                val cacheSubDir = File(it, "cache")
+                if (cacheSubDir.exists()) {
+                    directories.add(cacheSubDir)
+                }
+            }
+
             context.getExternalFilesDir(null)?.let { externalFiles ->
+                directories.add(externalFiles)
+
                 val externalCache = File(externalFiles, "cache")
                 if (externalCache.exists()) {
                     directories.add(externalCache)
-                } else {
                 }
             }
-        } catch (e: Exception) {
-        }
 
-        try {
-            val downloadDir = File("/storage/emulated/0/Download")
-            if (downloadDir.exists()) {
-                directories.add(downloadDir)
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "检查下载目录时出错", e)
-        }
-
-        try {
-            context.filesDir?.let {
-                directories.add(it)
-            }
-
-            context.getExternalFilesDir(null)?.let {
-                directories.add(it)
-            }
-
-            // 系统临时目录
-            val systemTempDirs = listOf(
-                "/storage/emulated/0/Android/data/",
-                "/data/data/",
-                "/sdcard/Android/data/"
-            )
-
-            systemTempDirs.forEach { path ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Environment.isExternalStorageManager()) {
                 try {
-                    val dir = File(path)
-                    if (dir.exists() && dir.canRead()) {
-                        directories.add(dir)
+                    val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    if (downloadDir?.exists() == true && downloadDir.canRead()) {
+                        directories.add(downloadDir)
                     }
+
+                    val dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+                    if (dcimDir?.exists() == true) {
+                        val thumbnailsDir = File(dcimDir, ".thumbnails")
+                        if (thumbnailsDir.exists() && thumbnailsDir.canRead()) {
+                            directories.add(thumbnailsDir)
+                        }
+                    }
+
+                    // 外部存储根目录的临时文件
+                    val externalStorageDir = Environment.getExternalStorageDirectory()
+                    if (externalStorageDir?.exists() == true && externalStorageDir.canRead()) {
+                        directories.add(externalStorageDir)
+                        Log.d(TAG, "Add an external storage root: ${externalStorageDir.absolutePath}")
+                    }
+
                 } catch (e: Exception) {
+                    Log.e(TAG, "Error checking public directory", e)
                 }
             }
 
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting the scan directory", e)
         }
 
-        val validDirectories = directories.filter { it.exists() && it.canRead() }
-
+        val validDirectories = directories.filter {
+            val canAccess = it.exists() && it.canRead()
+            if (!canAccess) {
+                Log.w(TAG, "The directory is inaccessible: ${it.absolutePath}")
+            }
+            canAccess
+        }
 
         return validDirectories
     }
-
 
     private fun scanDirectory(directory: File): List<ScannedFile> {
         val scannedFiles = mutableListOf<ScannedFile>()
@@ -226,7 +241,6 @@ class TrashScanRepository(private val context: Context) {
             if (files == null) {
                 return scannedFiles
             }
-
 
             files.forEach { file ->
                 try {
@@ -267,17 +281,20 @@ class TrashScanRepository(private val context: Context) {
                             scannedFiles.addAll(trashDirFiles)
                         } else {
                             try {
-                                if (getDirectoryDepth(file, directory) < 3) {
+                                if (getDirectoryDepth(file, directory) < 2) {
                                     scannedFiles.addAll(scanDirectory(file))
                                 }
                             } catch (e: Exception) {
+                                Log.w(TAG, "Recursively scan the catalog ${file.absolutePath} wrong", e)
                             }
                         }
                     }
                 } catch (e: Exception) {
+                    Log.w(TAG, "Process files ${file.absolutePath} wrong", e)
                 }
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Scan the catalog ${directory.absolutePath} wrong", e)
         }
 
         return scannedFiles
@@ -318,7 +335,6 @@ class TrashScanRepository(private val context: Context) {
         return dirName in trashFolderNames
     }
 
-
     private fun scanTrashDirectory(directory: File): List<ScannedFile> {
         val trashFiles = mutableListOf<ScannedFile>()
 
@@ -346,11 +362,11 @@ class TrashScanRepository(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
+            Log.e(TAG, "扫描垃圾目录 ${directory.absolutePath} 时出错", e)
         }
 
         return trashFiles
     }
-
 
     private fun isSpecialTrashPattern(fileName: String, filePath: String): Boolean {
         // 检查临时文件模式
@@ -385,16 +401,13 @@ class TrashScanRepository(private val context: Context) {
         return false
     }
 
-
     private fun categorizeTrashFile(file: File): FileCategory? {
-        // 使用原有的分类方法
         return FileCategory.Companion.categorizeFile(
             fileName = file.name,
             filePath = file.absolutePath,
             fileSize = file.length()
         )
     }
-
 
     private fun getDirectoryDepth(current: File, root: File): Int {
         var depth = 0

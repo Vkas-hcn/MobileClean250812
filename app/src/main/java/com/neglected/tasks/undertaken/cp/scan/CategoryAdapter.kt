@@ -135,11 +135,13 @@ class CategoryAdapter(
             }
         }
 
+        fileAdapter.submitList(categoryGroup.files)
 
+        Log.d(TAG, "setupFileRecyclerView: categoryPosition=$categoryPosition, files=${categoryGroup.files.size}")
     }
 
     override fun submitList(list: List<CategoryGroup>?) {
-
+        Log.d(TAG, "submitList: ${list?.size} categories")
         super.submitList(list?.toList())
     }
 
@@ -157,7 +159,7 @@ class CategoryAdapter(
                     oldItem.files.take(MAX_DISPLAY_FILES).zip(newItem.files.take(MAX_DISPLAY_FILES))
                         .all { (old, new) -> old.path == new.path && old.isSelected == new.isSelected }
 
-
+            Log.d(TAG, "areContentsTheSame: ${oldItem.category.name} = $result")
             return result
         }
     }
