@@ -362,7 +362,7 @@ class TrashScanRepository(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "扫描垃圾目录 ${directory.absolutePath} 时出错", e)
+            Log.e(TAG, "Scan the trash directory ${directory.absolutePath} wrong", e)
         }
 
         return trashFiles
